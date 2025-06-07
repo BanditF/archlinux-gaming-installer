@@ -683,6 +683,12 @@ main() {
         exit 1
     fi
     
+    # Check required dependencies
+    if ! command -v jq >/dev/null 2>&1; then
+        log "INFO" "Installing required dependency: jq"
+        pacman -Sy --noconfirm jq
+    fi
+    
     # Confirmation
     echo -e "${YELLOW}⚠️  This will erase selected disks and install Arch Linux${NC}"
     read -p "Continue? [y/N]: " confirm
