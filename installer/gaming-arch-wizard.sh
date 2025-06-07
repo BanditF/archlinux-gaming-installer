@@ -99,13 +99,13 @@ detect_hardware() {
     
     # Determine GPU configuration
     if [ -n "$nvidia_gpu" ] && [ -n "$intel_gpu" ]; then
-        gpu_config="hybrid_nvidia_intel"
+        HARDWARE_GPU_CONFIG="hybrid_nvidia_intel"
         log "SUCCESS" "Hybrid NVIDIA + Intel configuration detected (optimal for gaming)"
     elif [ -n "$nvidia_gpu" ]; then
-        gpu_config="nvidia_only"
+        HARDWARE_GPU_CONFIG="nvidia_only"
         log "SUCCESS" "NVIDIA-only configuration detected"
     elif [ -n "$intel_gpu" ]; then
-        gpu_config="intel_only"
+        HARDWARE_GPU_CONFIG="intel_only"
         log "WARNING" "Intel-only configuration (limited gaming performance)"
     fi
     
@@ -115,25 +115,7 @@ detect_hardware() {
         log "INFO" "  $line"
     done
     
-    # Save hardware info to config
-    cat > "$CONFIG_FILE" << EOF
-{
-    "hardware": {
-        "cpu_vendor": "$cpu_vendor",
-        "cpu_model": "$cpu_model",
-        "cpu_cores": $cpu_cores,
-        "ram_gb": $total_ram_gb,
-        "gpu_config": "$gpu_config",
-        "nvidia_gpu": "$nvidia_gpu",
-        "intel_gpu": "$intel_gpu"
-    },
-    "installation": {
-        "type": "gaming",
-        "gaming_optimizations": true,
-        "development_stack": true
-    }
-}
-EOF
+    log "SUCCESS" "Hardware detection completed"
 }
 
 # Storage configuration wizard
@@ -210,22 +192,23 @@ configure_storage() {
         fi
     fi
     
-    # Update config with storage layout
-    jq --arg boot "$boot_disk" --arg media "$media_disk" \
-       '.storage = {
-            "boot_disk": $boot,
-            "media_disk": $media,
-            "layout": (if $media == "" then "single" else "dual" end)
-        }' "$CONFIG_FILE" > "${CONFIG_FILE}.tmp" && mv "${CONFIG_FILE}.tmp" "$CONFIG_FILE"
+    # Store storage layout in variables
+    STORAGE_BOOT_DISK="$boot_disk"
+    STORAGE_MEDIA_DISK="$media_disk"
+    if [ -z "$media_disk" ]; then
+        STORAGE_LAYOUT="single"
+    else
+        STORAGE_LAYOUT="dual"
+    fi
 }
 
 # Partition and format disks
 setup_storage() {
     log "STEP" "Setting up storage layout"
     
-    local boot_disk=$(jq -r '.storage.boot_disk' "$CONFIG_FILE")
-    local media_disk=$(jq -r '.storage.media_disk' "$CONFIG_FILE")
-    local layout=$(jq -r '.storage.layout' "$CONFIG_FILE")
+    local boot_disk="$STORAGE_BOOT_DISK"
+    local media_disk="$STORAGE_MEDIA_DISK"
+    local layout="$STORAGE_LAYOUT"
     
     log "INFO" "Boot disk: $boot_disk"
     if [ "$layout" = "dual" ]; then
@@ -434,7 +417,7 @@ EOF
 install_gaming_stack() {
     log "STEP" "Installing gaming stack"
     
-    local gpu_config=$(jq -r '.hardware.gpu_config' "$CONFIG_FILE")
+    local gpu_config="$HARDWARE_GPU_CONFIG"
     
     arch-chroot /mnt /bin/bash << EOF
 set -e
@@ -683,11 +666,6 @@ main() {
         exit 1
     fi
     
-    # Check required dependencies
-    if ! command -v jq >/dev/null 2>&1; then
-        log "INFO" "Installing required dependency: jq"
-        pacman -Sy --noconfirm jq
-    fi
     
     # Confirmation
     echo -e "${YELLOW}⚠️  This will erase selected disks and install Arch Linux${NC}"
