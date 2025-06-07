@@ -430,6 +430,13 @@ sudo -u $username makepkg -si --noconfirm
 cd /
 rm -rf /tmp/yay
 
+# Enable multilib repository for 32-bit gaming packages
+if ! grep -q "\[multilib\]" /etc/pacman.conf; then
+    echo '[multilib]' >> /etc/pacman.conf
+    echo 'Include = /etc/pacman.d/mirrorlist' >> /etc/pacman.conf
+    pacman -Sy
+fi
+
 # Gaming packages
 pacman -S --noconfirm \\
     steam \\
