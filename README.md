@@ -188,6 +188,8 @@ same games.
 - [Gaming Configuration](docs/gaming.md)
 - [Troubleshooting](docs/troubleshooting.md)
 - [Desktop Environment Explorer](docs/de-explorer.md)
+- [Testing and Review Guide](docs/testing.md)
+
 
 ## 🤝 Contributing
 
