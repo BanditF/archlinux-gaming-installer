@@ -21,7 +21,18 @@ cd archlinux-gaming-installer
 # Run the gaming wizard
 chmod +x installer/gaming-arch-wizard.sh
 sudo ./installer/gaming-arch-wizard.sh
+
+# Or use the full installer with desktop selection
+chmod +x installer/full-install.sh
+sudo ./installer/full-install.sh --de hyprland
 ```
+
+## 📦 Dependencies
+
+The installer uses `pacstrap` from the Arch ISO and expects an active
+internet connection. The base system installs `git` and `stow` so that
+dotfiles can be managed automatically. Each desktop environment pulls in
+its own packages such as `hyprland`, `plasma-meta`, or `gnome`.
 
 ## 🎯 Target Hardware
 
@@ -161,12 +172,22 @@ gamemode --status
 mangohud --version
 ```
 
+## 🗂 Dotfile Management
+
+Configuration files for each desktop environment live under the
+`configs/` directory. During installation the scripts copy these folders
+to `/opt/de-explorer` on the new system and use `stow` to link the
+selected set into the user's home directory. Shared resources such as
+the Steam library remain in `/data` so every environment can access the
+same games.
+
 ## 📚 Documentation
 
 - [Installation Guide](docs/installation.md)
 - [Hardware Compatibility](docs/hardware.md)
 - [Gaming Configuration](docs/gaming.md)
 - [Troubleshooting](docs/troubleshooting.md)
+- [Desktop Environment Explorer](docs/de-explorer.md)
 
 ## 🤝 Contributing
 
